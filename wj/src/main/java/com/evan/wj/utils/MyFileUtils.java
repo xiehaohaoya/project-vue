@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -367,6 +368,17 @@ public class MyFileUtils {
             }
         }
         return isArchive;
+    }
+
+    /**
+     * 根据正则表达式判断是否匹配
+     * @param str
+     * @param pattern
+     * @return
+     */
+    public boolean regexPattern(String str,String pattern) {
+        Pattern r = Pattern.compile(pattern);
+        return r.matcher(str).find();
     }
 
 }

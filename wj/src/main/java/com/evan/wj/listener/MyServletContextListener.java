@@ -3,12 +3,15 @@ package com.evan.wj.listener;
 import com.evan.wj.pojo.User;
 import com.evan.wj.server.UserService;
 import com.evan.wj.utils.MyFileUtils;
+import com.evan.wj.utils.RedisUtils;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,6 +22,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 /**
  * 使用 ApplicationListener 来初始化一些数据到 application 域中的监听器
@@ -88,9 +92,27 @@ public class MyServletContextListener implements ApplicationListener<ContextRefr
 
         // 判断文件是否为压缩文件
         System.out.println(new MyFileUtils().isArchiveFile(new File("D:\\test\\1.txt")));
+
+        // 正则表达式，判断是否为一个或多个空格符，制表符
+        System.out.println(new MyFileUtils().regexPattern("  ","\\s+"));
+
+
+
+        // redis存放数据测试
+        new RedisUtils().redisSetVal();
+
+        // redis存放数据测试
+        new RedisUtils().redisGetVal();
 */
 
-        System.out.println("aaaaaaaaaaaaaaaaaaaaa");
+
+    }
+
+
+
+
+
+    public static void main(String[] args) {
 
     }
 
