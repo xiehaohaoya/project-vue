@@ -95,7 +95,7 @@
       <if test="cover != null">
         cover = #{cover,jdbcType=VARCHAR},
       </if>
-      <if test="title != null">
+      <if test="title != null">addOrUpdateBook
         title = #{title,jdbcType=VARCHAR},
       </if>
       <if test="author != null">

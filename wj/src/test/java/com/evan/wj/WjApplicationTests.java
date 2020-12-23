@@ -8,6 +8,7 @@ class WjApplicationTests {
 
 	@Test
 	void contextLoads() {
+		System.out.println("asdfasdfa ");
 	}
 
 }

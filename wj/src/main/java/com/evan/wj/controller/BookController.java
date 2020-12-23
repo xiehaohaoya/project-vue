@@ -6,21 +6,19 @@ import com.evan.wj.server.BookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
+//@RestController = @Controller + @ResponseBody
 @Controller
-@Slf4j
+@Slf4j      //使用该注解，可以直接使用log.info("xxx")打印日志
 public class BookController {
 
-    @Autowired
+    @Autowired      //注入bean
     private BookService bookService;
 
-    @CrossOrigin
-    @ResponseBody
-    @PostMapping(value = "/api/addOrUpdateBook")
+    @CrossOrigin        //允许跨域访问
+    @ResponseBody       //返回json格式的http返回体
+    @PostMapping(value = "/api/addOrUpdateBook")        //相当于@RequestMapping(value = "/get/{id}", method = RequestMethod.POST)
     public Result addOrUpdateBook(@RequestBody Book book) {
         bookService.addOrUpdateBook(book);
         System.out.println("asdfadsfasdf");

@@ -2,6 +2,7 @@ package com.evan.wj.listener;
 
 import com.evan.wj.pojo.User;
 import com.evan.wj.server.UserService;
+import com.evan.wj.utils.HbaseUtils;
 import com.evan.wj.utils.MyFileUtils;
 import com.evan.wj.utils.RedisUtils;
 import lombok.SneakyThrows;
@@ -11,6 +12,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.data.hadoop.hbase.HbaseTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,9 +21,7 @@ import javax.servlet.ServletContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -32,6 +32,9 @@ import java.util.regex.Pattern;
  */
 @Component
 public class MyServletContextListener implements ApplicationListener<ContextRefreshedEvent> {
+
+//    @Autowired
+//    private HbaseUtils hbaseUtils;
 
     @SneakyThrows
     @Override
@@ -105,16 +108,15 @@ public class MyServletContextListener implements ApplicationListener<ContextRefr
         new RedisUtils().redisGetVal();
 */
 
-
+//        initTable();
     }
 
-
-
-
-
-    public static void main(String[] args) {
-
-    }
-
+//    public void initTable(){
+//        hbaseUtils.initRepository();
+//        Map<String, List<String>> tableMap = new HashMap<>();
+//        tableMap.put("default:actionFlow",Arrays.asList("info","logs"));
+//        tableMap.put("default:recording",Arrays.asList("info","logs"));
+//        hbaseUtils.createManyTable(tableMap);
+//    }
 
 }

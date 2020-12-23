@@ -18,17 +18,15 @@ public class LoginController {
     @Autowired
     private UserService userService;
 
-    @CrossOrigin
+    @CrossOrigin//防止跨域攻击
     @PostMapping(value = "/api/login")
     @ResponseBody
-    public Result login(@RequestBody User requestUser) {
+    public Result login(@RequestBody User requestUser) {        //@RequestBody只能用POST方法,@RequestParam查询用GET方法，上传数据或者需要改变数据库中的值还是用POST
         // 对 html 标签进行转义，防止 XSS 攻击
         String username = requestUser.getUsername();
         String password = requestUser.getPassword();
         password = HtmlUtils.htmlEscape(password);
         username = HtmlUtils.htmlEscape(username);
-
-
 
         User user = userService.selectUserByName(username);
 
