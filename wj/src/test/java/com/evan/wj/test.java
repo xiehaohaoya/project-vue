@@ -70,19 +70,3 @@ public class test {
     }
 
 }
-
-class newTest {
-    @Test
-    public void test3() {
-        for (int i = 0; i < 10; i++) {
-            System.out.println("bbb");
-        }
-    }
-
-    @Test
-    public void test4() {
-        for (int i = 0; i < 10; i++) {
-            System.out.println("ccc");
-        }
-    }
-}

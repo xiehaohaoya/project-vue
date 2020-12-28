@@ -1,7 +1,10 @@
 package com.evan.wj.pojo;
 
+import lombok.Data;
+
 import java.util.Date;
 
+@Data
 public class Book {
     private Integer id;
 
@@ -21,7 +24,11 @@ public class Book {
 
     private String category;
 
-    public Book(Integer id, String cover, String title, String author, Date date, String press, String abs, Integer cid) {
+    public Book() {
+        super();
+    }
+
+    public Book(Integer id, String cover, String title, String author, Date date, String press, String abs, Integer cid, String category) {
         this.id = id;
         this.cover = cover;
         this.title = title;
@@ -30,81 +37,6 @@ public class Book {
         this.press = press;
         this.abs = abs;
         this.cid = cid;
-    }
-
-    public Book() {
-        super();
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getCover() {
-        return cover;
-    }
-
-    public void setCover(String cover) {
-        this.cover = cover == null ? null : cover.trim();
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title == null ? null : title.trim();
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author == null ? null : author.trim();
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public String getPress() {
-        return press;
-    }
-
-    public void setPress(String press) {
-        this.press = press == null ? null : press.trim();
-    }
-
-    public String getAbs() {
-        return abs;
-    }
-
-    public void setAbs(String abs) {
-        this.abs = abs == null ? null : abs.trim();
-    }
-
-    public Integer getCid() {
-        return cid;
-    }
-
-    public void setCid(Integer cid) {
-        this.cid = cid;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
         this.category = category;
     }
 }

@@ -6,7 +6,9 @@ import com.evan.wj.utils.HbaseUtils;
 import com.evan.wj.utils.MyFileUtils;
 import com.evan.wj.utils.RedisUtils;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
@@ -14,6 +16,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.data.hadoop.hbase.HbaseTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,7 +33,7 @@ import java.util.regex.Pattern;
  * @author shengni ni
  * @date 2018/07/05
  */
-@Component
+@Slf4j
 public class MyServletContextListener implements ApplicationListener<ContextRefreshedEvent> {
 
 //    @Autowired
