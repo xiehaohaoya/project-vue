@@ -69,4 +69,8 @@ class AeroThread extends Thread {
         log.info("正在执行:{}",Thread.currentThread().getName());
         System.out.println("正在执行:{}"+Thread.currentThread().getName());
     }
+
+    public void function() {
+        System.out.println("function方法");
+    }
 }
