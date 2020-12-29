@@ -1,8 +1,11 @@
 package com.evan.wj;
 
+import com.evan.wj.utils.udp.ParseUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -59,6 +62,22 @@ public class demoTest {
         executorService.execute(aeroThread4);
         executorService.execute(aeroThread5);
         executorService.execute(aeroThread6);
+    }
+
+    @Test
+    public void function() {
+//        System.out.println(Integer.toHexString(171711));
+//        System.out.println(Long.toHexString(Double.doubleToLongBits(177777.177777)));
+
+        ParseUtils parseUtils = new ParseUtils();
+//        System.out.println(parseUtils.getHexResult("繁"));
+//        System.out.println(parseUtils.addZero("abc", 4));
+//        System.out.println(parseUtils.convertBigSmall(""));
+
+        String sendStr = "Udp ";//发送的信息
+        byte[] sendBuf;//创建字节数组
+        sendBuf = sendStr.getBytes();//以字节数组形式发出
+        System.out.println(sendBuf.length);
     }
 }
 

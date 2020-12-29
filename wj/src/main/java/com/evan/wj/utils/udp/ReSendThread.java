@@ -3,7 +3,7 @@ package com.evan.wj.utils.udp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import com.evan.wj.utils.udp.pojo.FramePojo;
+import com.evan.wj.pojo.udp.FramePojo;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 

@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-public class test {
+public class HbaseTest {
 
 //    @Test
 //    public void test1() throws IOException {

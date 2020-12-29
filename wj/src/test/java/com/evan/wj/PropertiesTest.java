@@ -13,7 +13,7 @@ import java.util.Properties;
 @SpringBootTest
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class test2 {
+public class PropertiesTest {
     @Test
     public void test() throws IOException {
         Properties properties = PropertiesLoaderUtils.loadAllProperties("test.properties");

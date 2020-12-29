@@ -13,14 +13,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScheduledTask {
 
-    @Scheduled(cron="0 0/1 * * * ?")
-    public void testOne() {
-        log.info("每分钟执行一次");
-    }
-
-    @Scheduled(fixedRate=30000)
-    public void testTwo() {
-        log.info("每30秒执行一次");
-    }
+//    @Scheduled(cron="0 0/1 * * * ?")
+//    public void testOne() {
+//        log.info("每分钟执行一次");
+//    }
+//
+//    @Scheduled(fixedRate=30000)
+//    public void testTwo() {
+//        log.info("每30秒执行一次");
+//    }
 
 }

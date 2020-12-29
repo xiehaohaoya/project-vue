@@ -1,4 +1,4 @@
-package com.evan.wj.utils.udp.pojo;
+package com.evan.wj.pojo.udp;
 
 import lombok.Data;
 import org.springframework.context.annotation.Scope;
