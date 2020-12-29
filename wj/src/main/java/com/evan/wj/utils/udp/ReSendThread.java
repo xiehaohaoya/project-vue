@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class ReSendThread extends Thread {
 
-    private CopyOnWriteArrayList<FramePojo> framePojoList;
+    private volatile CopyOnWriteArrayList<FramePojo> framePojoList;
 
     //TODO 创建一个对FramePojo的封装类，方便重传
 
@@ -37,7 +37,6 @@ public class ReSendThread extends Thread {
      * 移除指定编号的数据包
      */
     public void removeFramePojo(int number) {
-
         //TODO 将foreach改为iterator
         for (int i = 0; i < framePojoList.size(); i++) {
             if (framePojoList.get(i).getFrameHeaderPojo().getFrameNum() == number) {

@@ -31,6 +31,7 @@ public class UdpClient {
      * @return 返回响应字符串
      */
     public String udpSend(String sendStr) {
+        log.info("clientSocket向{}:{}发送:String-{}", destIp, destPort, sendStr);
         DatagramSocket clientSocket;
         String recStr = null;
         try {
@@ -41,7 +42,8 @@ public class UdpClient {
             InetAddress address = InetAddress.getByName(destIp);
             DatagramPacket sendPacket = new DatagramPacket(sendBuf, sendBuf.length, address, destPort);
             clientSocket.send(sendPacket);//发送
-            log.info("clientSocket向{}:{}发送:{}", destIp, destPort, sendBuf);
+
+            log.info("clientSocket向{}:{}发送:Bytes-{}", destIp, destPort, sendBuf);
 
             Thread.sleep(10000);
             //接收响应的数据

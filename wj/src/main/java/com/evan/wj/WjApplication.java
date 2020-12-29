@@ -9,7 +9,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @MapperScan("com.evan.wj.mapper")//添加对mapper的扫描
 @SpringBootApplication
 public class WjApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(WjApplication.class, args);
 	}

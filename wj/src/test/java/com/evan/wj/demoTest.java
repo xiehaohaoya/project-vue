@@ -71,13 +71,54 @@ public class demoTest {
 
         ParseUtils parseUtils = new ParseUtils();
 //        System.out.println(parseUtils.getHexResult("繁"));
+//        System.out.println(Integer.toHexString(1));
 //        System.out.println(parseUtils.addZero("abc", 4));
 //        System.out.println(parseUtils.convertBigSmall(""));
+//        String sendStr = "Udp ";//发送的信息
+//        byte[] sendBuf;//创建字节数组
+//        sendBuf = sendStr.getBytes();//以字节数组形式发出
+//        System.out.println(sendBuf.length);
 
-        String sendStr = "Udp ";//发送的信息
-        byte[] sendBuf;//创建字节数组
-        sendBuf = sendStr.getBytes();//以字节数组形式发出
-        System.out.println(sendBuf.length);
+        //十六进制转十进制
+//        System.out.println(Integer.parseInt("a", 16));
+        System.out.println(Integer.parseInt("a", 16));
+
+        String str = "c0a8016a0b6f6f6f";
+        for (int i = 1; i <= str.length()/4; i++) {
+//            "0x"+str.substring(4 * i - 4, 4 * i);
+//            Integer.parseInt()
+        }
+        int a = 0x11;
+    }
+
+    @Test
+    public void function2() {
+        int[] arr = {0xc0a8,0x016a,0x0b6f,0x6f6f};
+        int sum = 0;
+        for(int num:arr) {
+            sum += num;
+            if(sum>>>16>0) {
+                sum = (sum >>> 16) + (sum & 0xffff);
+            }
+        }
+        System.out.println(Integer.toBinaryString(sum));
+        //取低16位
+        System.out.println(Integer.toHexString(~sum).substring(4));
+    }
+
+    @Test
+    public String makeChecksum() {
+        String str = "c0a8016a0b6f6f6f";
+        int sum = 0;
+        for (int i = 1; i <= str.length()/4; i++) {
+            int num = Integer.parseInt(str.substring(4 * i - 4, 4 * i), 16);
+            sum += num;
+            if(sum>>>16>0) {
+                sum = (sum >>> 16) + (sum & 0xffff);
+            }
+        }
+        //取低16位
+        return Integer.toHexString(~sum).substring(4);
     }
 }
 

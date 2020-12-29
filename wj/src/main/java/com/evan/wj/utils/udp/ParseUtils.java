@@ -125,4 +125,21 @@ public class ParseUtils {
         }
         return strBuffer.toString();
     }
+
+    /**
+     * 计算校验和
+     * @return
+     */
+    public String makeChecksum(String str) {
+        int sum = 0;
+        for (int i = 1; i <= str.length()/4; i++) {
+            int num = Integer.parseInt(str.substring(4 * i - 4, 4 * i), 16);
+            sum += num;
+            if(sum>>>16>0) {
+                sum = (sum >>> 16) + (sum & 0xffff);
+            }
+        }
+        //取低16位
+        return Integer.toHexString(~sum).substring(4);
+    }
 }
