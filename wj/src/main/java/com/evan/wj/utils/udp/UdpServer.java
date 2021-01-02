@@ -36,7 +36,9 @@ public class UdpServer {
                 String recStr = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8);
                 log.info("UdpServer 接收到的数据:{}",recStr);//输出
 
-                // 向消息的发送者发送响应数据，可以用此实现udp重传反馈
+                // TODO 解析接收到的数据，判断是否需要响应
+
+                // 向消息的发送者发送响应数据
                 int port = receivePacket.getPort();//获得到客户端的端口//这是通过客户端的数据包中的获取到客户端的端口
                 InetAddress address = receivePacket.getAddress();//得到ip地址
 

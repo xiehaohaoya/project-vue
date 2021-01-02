@@ -1,11 +1,13 @@
 package com.evan.wj.utils.udp;
 
+import com.evan.wj.pojo.udp.ResendKeyPojo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evan.wj.pojo.udp.FramePojo;
-
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 负责数据包重传的线程
@@ -14,46 +16,33 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class ReSendThread extends Thread {
 
-    private volatile CopyOnWriteArrayList<FramePojo> framePojoList;
+    private volatile ConcurrentHashMap<ResendKeyPojo, String> resendHashMap;
 
-    //TODO 创建一个对FramePojo的封装类，方便重传
+    @Autowired
+    UdpClient udpClient;
+    @Autowired
+    ParseUtils parseUtils;
 
     /**
      * 线程的构造方法
      * 线程开启后一直有效
      */
     public ReSendThread() {
-        framePojoList = new CopyOnWriteArrayList<>();//实例化队列
+        resendHashMap = new ConcurrentHashMap<>();//实例化队列
     }
 
     /**
      * 添加重传队列的数据包
      */
-    public void addFramePojo(FramePojo framePojo) {
-        framePojoList.add(framePojo);
+    public void addFrame(ResendKeyPojo resendKeyPojo, String resendHexStr) {
+        resendHashMap.put(resendKeyPojo, resendHexStr);
     }
 
     /**
      * 移除指定编号的数据包
      */
-    public void removeFramePojo(int number) {
-        //TODO 将foreach改为iterator
-        for (int i = 0; i < framePojoList.size(); i++) {
-            if (framePojoList.get(i).getFrameHeaderPojo().getFrameNum() == number) {
-                framePojoList.remove(i);
-            }
-        }
-    }
-
-    /**
-     * 判断重传列表是否为空
-     */
-    public boolean isEmpty() {
-        if (framePojoList.size() == 0) {
-            return true;
-        } else {
-            return false;
-        }
+    public void removeFrame(ResendKeyPojo resendKeyPojo) {
+        resendHashMap.remove(resendKeyPojo);
     }
 
     /**
@@ -62,22 +51,75 @@ public class ReSendThread extends Thread {
     public void run() {
         try {
             while (true) {
-                Thread.sleep(100);//刚开始睡眠等待接收
-                for (int i = 0; i < framePojoList.size(); i++) {
-                    if (framePojoList.get(i) != null) {
-                        FramePojo framePojo = framePojoList.get(i);
-                        long time = System.currentTimeMillis() - framePojo.getLastTime();//距离上次发送的时间
-                        if (time > 300) {
-                            //TODO 用udpClient替代这里
-//                            sendMethod.sendMessage(framePojo.data, framePojo.destIp,framePojo.destPort);//超出300ms则重发
-                            log.info("MainActivity", "重发了一个数据包，它的编号是：" + framePojo.getFrameHeaderPojo().getFrameNum());
-                            int reSendTimes = framePojo.getReSendTimes();
-                            framePojo.setReSendTimes(++reSendTimes);
+                if (!resendHashMap.isEmpty()) {
+                    Iterator iterator = resendHashMap.entrySet().iterator();
+                    while (iterator.hasNext()){
+                        Map.Entry entry = (Map.Entry) iterator.next();
+                        ResendKeyPojo resendKeyPojo = (ResendKeyPojo)entry.getKey();
+                        String resendHexStr = (String)entry.getValue();
+
+                        long time = System.currentTimeMillis() - resendKeyPojo.getLastSendTime();//距离上次发送的时间
+                        if (resendKeyPojo.getResendTimes() == 1 && time > 300) {   //超出300ms则重发
+                            String resendTimes = parseUtils.convertBigSmall(
+                                    parseUtils.addZero(
+                                            Integer.toHexString(
+                                                    resendKeyPojo.getResendTimes() + 1
+                                            ), 4
+                                    )
+                            );
+
+                            // 重新组装帧数据，并发送
+                            resendHexStr = resendHexStr.substring(0, 12) + resendTimes + resendHexStr.substring(20, 24);
+                            String checkSum = parseUtils.makeChecksum(resendHexStr);
+                            resendHexStr = resendHexStr + checkSum;
+                            udpClient.udpSend(resendHexStr, resendKeyPojo.getIp(), resendKeyPojo.getPort());
+                            log.info("MainActivity", "重发了一个数据包，它的编号是：" + resendKeyPojo.getFrameSeq());
+
+                            int reSendTimes = resendKeyPojo.getResendTimes();
+                            resendKeyPojo.setResendTimes(++reSendTimes);
+                            resendKeyPojo.setLastSendTime(System.currentTimeMillis());
+                        }else if (resendKeyPojo.getResendTimes() == 2 && time > 200) {   //超出300ms则重发
+                            String resendTimes = parseUtils.convertBigSmall(
+                                    parseUtils.addZero(
+                                            Integer.toHexString(
+                                                    resendKeyPojo.getResendTimes() + 1
+                                            ), 4
+                                    )
+                            );
+
+                            // 重新组装帧数据，并发送
+                            resendHexStr = resendHexStr.substring(0, 12) + resendTimes + resendHexStr.substring(20, 24);
+                            String checkSum = parseUtils.makeChecksum(resendHexStr);
+                            resendHexStr = resendHexStr + checkSum;
+                            udpClient.udpSend(resendHexStr, resendKeyPojo.getIp(), resendKeyPojo.getPort());
+                            log.info("MainActivity", "重发了一个数据包，它的编号是：" + resendKeyPojo.getFrameSeq());
+
+                            int reSendTimes = resendKeyPojo.getResendTimes();
+                            resendKeyPojo.setResendTimes(++reSendTimes);
+                            resendKeyPojo.setLastSendTime(System.currentTimeMillis());
+                        }else if (resendKeyPojo.getResendTimes() == 3 && time > 100) {   //超出300ms则重发
+                            String resendTimes = parseUtils.convertBigSmall(
+                                    parseUtils.addZero(
+                                            Integer.toHexString(
+                                                    resendKeyPojo.getResendTimes() + 1
+                                            ), 4
+                                    )
+                            );
+
+                            // 重新组装帧数据，并发送
+                            resendHexStr = resendHexStr.substring(0, 12) + resendTimes + resendHexStr.substring(20, 24);
+                            String checkSum = parseUtils.makeChecksum(resendHexStr);
+                            resendHexStr = resendHexStr + checkSum;
+                            udpClient.udpSend(resendHexStr, resendKeyPojo.getIp(), resendKeyPojo.getPort());
+                            log.info("MainActivity", "重发了一个数据包，它的编号是：" + resendKeyPojo.getFrameSeq());
+
+                            int reSendTimes = resendKeyPojo.getResendTimes();
+                            resendKeyPojo.setResendTimes(++reSendTimes);
+                            resendKeyPojo.setLastSendTime(System.currentTimeMillis());
                         }
-                        if (framePojo.getReSendTimes() >= 3) {     //发送超过三次就移除
-                            framePojoList.remove(i);
+                        if (resendKeyPojo.getResendTimes() >= 3) {  //发送超过三次就移除
+                            resendHashMap.remove(resendKeyPojo);
                         }
-                        Thread.sleep(30);//每次数据包处理之间的间隔
                     }
                 }
             }

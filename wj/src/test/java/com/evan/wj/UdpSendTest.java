@@ -1,11 +1,9 @@
 package com.evan.wj;
 
 import com.evan.wj.listener.ListenerExcludeFilter;
-import com.evan.wj.pojo.udp.FrameBodyPojo;
-import com.evan.wj.pojo.udp.FrameHeaderPojo;
-import com.evan.wj.pojo.udp.FramePojo;
-import com.evan.wj.pojo.udp.FrameTableNumPojo;
+import com.evan.wj.pojo.udp.*;
 import com.evan.wj.utils.udp.ParseUtils;
+import com.evan.wj.utils.udp.ReSendThread;
 import com.evan.wj.utils.udp.UdpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -37,6 +35,10 @@ public class UdpSendTest {
     FrameBodyPojo frameBodyPojo;
     @Autowired
     FramePojo framePojo;
+    @Autowired
+    ReSendThread reSendThread;
+    @Autowired
+    ResendKeyPojo resendKeyPojo;
 
     @Test
     public void function() {
@@ -105,5 +107,13 @@ public class UdpSendTest {
 
         //TODO 是不是在这里调用重传机制？
         udpClient.udpSend(frameBuffer.toString());
+
+        resendKeyPojo.setIp("");
+        resendKeyPojo.setPort(1);
+        resendKeyPojo.setFrameSeq("");
+        resendKeyPojo.setResendTimes(1);
+        resendKeyPojo.setLastSendTime(1);
+        reSendThread.addFrame(resendKeyPojo, frameBuffer.toString());
+
     }
 }

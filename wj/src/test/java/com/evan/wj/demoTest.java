@@ -1,11 +1,13 @@
 package com.evan.wj;
 
+import com.evan.wj.pojo.udp.ResendKeyPojo;
 import com.evan.wj.utils.udp.ParseUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -107,7 +109,7 @@ public class demoTest {
     }
 
     @Test
-    public String makeChecksum() {
+    public void makeChecksum() {
         String str = "c0a8016a0b6f6f6f";
         int sum = 0;
         for (int i = 1; i <= str.length()/4; i++) {
@@ -118,7 +120,26 @@ public class demoTest {
             }
         }
         //取低16位
-        return Integer.toHexString(~sum).substring(4);
+        Integer.toHexString(~sum).substring(4);
+    }
+
+    @Test
+    public void function3() {
+        ResendKeyPojo resendKeyPojo = new ResendKeyPojo();
+        resendKeyPojo.setIp("1");
+        resendKeyPojo.setPort("1");
+        resendKeyPojo.setLastSendTime(1);
+
+        ResendKeyPojo resendKeyPojo2 = new ResendKeyPojo();
+        resendKeyPojo2.setIp("1");
+        resendKeyPojo2.setPort("1");
+        resendKeyPojo2.setLastSendTime(1);
+
+        HashMap<Object, Object> objectObjectHashMap = new HashMap<>();
+        objectObjectHashMap.put(resendKeyPojo,resendKeyPojo);
+        objectObjectHashMap.put(resendKeyPojo2,resendKeyPojo2);
+
+        System.out.println(objectObjectHashMap.size());
     }
 }
 

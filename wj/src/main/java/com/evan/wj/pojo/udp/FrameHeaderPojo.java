@@ -12,4 +12,5 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class FrameHeaderPojo {
     long FrameNum;
+    byte reSendTimes;
 }
