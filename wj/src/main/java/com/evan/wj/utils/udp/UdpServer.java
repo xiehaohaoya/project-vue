@@ -51,7 +51,6 @@ public class UdpServer {
                     int port = receivePacket.getPort();//获得到客户端的端口//这是通过客户端的数据包中的获取到客户端的端口
                     InetAddress address = receivePacket.getAddress();//得到ip地址
 
-                    //TODO 组装响应的信息
                     byte[] responseBuf;//创建字节数组
                     responseBuf = responseHexStr.getBytes();//以字节数组形式发出
                     DatagramPacket sendPacket = new DatagramPacket(responseBuf, responseBuf.length, address, port);

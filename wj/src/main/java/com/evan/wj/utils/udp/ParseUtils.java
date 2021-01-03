@@ -227,18 +227,24 @@ public class ParseUtils {
      * @return
      */
     public String parseFrame(String hexFrameStr) {
-        // TODO 用两个list来存放 变量名字和字段值，frameHeaderFieldsList，fieldsNameList，headerValuesList的index是对应样的
+
+        // frameHeaderFieldsList用来存放帧头的字段格式，如"int_4_2"或"int_4"
         String[] frameHeaderFieldsArr = frameFieldsMap.get("frameHeaderFieldsList").split(",");
         CopyOnWriteArrayList<String> frameHeaderFieldsList = new CopyOnWriteArrayList<>(Arrays.asList(frameHeaderFieldsArr));
 
+        // headerFieldsNameList用来存放帧头的字段名字，如"tableNum"
         String[] headerFieldsNameArr = frameFieldsMap.get("headerFieldsNameList").split(",");
         CopyOnWriteArrayList<String> headerFieldsNameList = new CopyOnWriteArrayList<>(Arrays.asList(headerFieldsNameArr));
 
+        // headerValuesList用来存放帧头字段的值
         CopyOnWriteArrayList headerValuesList = new CopyOnWriteArrayList();
+
+        // 校验帧的在帧内的字节位置
+        int checkSumIndex = 0;
 
         // 筛选帧
         for (int i = 0; i < headerFieldsNameList.size(); i++) {
-            // 判断帧类型是否正确
+            // 判断帧类型是否正确，不正确则返回null，在上层丢弃
             if ("frameType".equals(headerFieldsNameList.get(i))) {
                 if (!"BE".equals(headerValuesList.get(i).toString())) {
                     return null;
@@ -247,7 +253,7 @@ public class ParseUtils {
 
             // 判断校验和是否正确，不正确则返回null，在上层丢弃
             if ("checkSum".equals(headerFieldsNameList.get(i))) {
-                int checkSumIndex = Integer.parseInt(frameHeaderFieldsList.get(i).split("_")[2]);
+                checkSumIndex = Integer.parseInt(frameHeaderFieldsList.get(i).split("_")[2]);
                 String checkSum = makeChecksum(hexFrameStr.substring(0, checkSumIndex * 2) + "0000" + hexFrameStr.substring(checkSumIndex + 4));
                 if (!checkSum.equals(hexFrameStr.substring(checkSumIndex * 2, checkSumIndex * 2 + 4))) {
                     return null;
@@ -255,13 +261,14 @@ public class ParseUtils {
             }
         }
 
-        // 解析帧头，将帧头信息按照字段顺序存入list中
+        // 解析帧头，将帧头字段的值按照顺序存入headerValuesList中
         CopyOnWriteArrayList<Object> valuesAndHexStrList;
         valuesAndHexStrList = getValuesAndHexStrList(headerFieldsNameList, hexFrameStr);
         headerValuesList = (CopyOnWriteArrayList) valuesAndHexStrList.get(0);
+        // 返回hexFrameStr为切去帧头的16进制字符串
         hexFrameStr = valuesAndHexStrList.get(1).toString();
 
-        // 为FramePojo对象赋值，并判断是否需要响应
+        // 组装resendKeyPojo对象，并判断是否需要响应
         for (int i = 0; i < headerFieldsNameList.size(); i++) {
             if ("ip".equals(headerFieldsNameList.get(i))) {
                 resendKeyPojo.setIp(headerValuesList.get(i).toString());
@@ -271,7 +278,7 @@ public class ParseUtils {
                 resendKeyPojo.setFrameSeq(Long.parseLong(headerValuesList.get(i).toString()));
             } else if ("ifResponse".equals(headerFieldsNameList.get(i))) {
                 // 判断该帧是否是返回的响应帧，如果是响应帧，取消该帧的重传机制，返回null，在上层丢弃
-                // TODO 这里先默认1是响应帧，其他不需要响应？有问题，帧序号不能作为判断移除帧的依据
+                // TODO 这里暂且先默认1是响应帧
                 if (1 == Integer.parseInt(headerValuesList.get(i).toString())) {
                     reSendThread.removeFrame(resendKeyPojo);
                     return null;
@@ -279,28 +286,24 @@ public class ParseUtils {
             }
         }
 
-        // TODO 判断是否是响应帧，响应帧直接移除重传机制，并且不需要返回响应
-        // TODO 不是响应帧需要解析帧信息，并判断有几个帧体，并返回响应
+        // 如果不是响应帧，需要解析出帧信息，判断有几个帧体，并返回响应
         String tableNum;
         int tableNo = 0;
         // 存放帧字段结构的list，如"int_4_12"或"int_4"
         CopyOnWriteArrayList<String> frameBodyFieldsList = new CopyOnWriteArrayList<>();
         // 存放帧字段名字的list
         CopyOnWriteArrayList<String> bodyFieldsNameList = new CopyOnWriteArrayList();
-        //存放多个帧体的数据
-        CopyOnWriteArrayList<CopyOnWriteArrayList> multiBodyValuesListList = new CopyOnWriteArrayList();
-
         for (int i = 0; i < headerFieldsNameList.size(); i++) {
             // 得到帧体的表号
             if ("tableNum".equals(headerFieldsNameList.get(i))) {
                 tableNum = headerValuesList.get(i).toString();
-                // 匹配到tableNum，为帧字段结构list赋值
+                // 匹配到tableNum，为帧字段结构frameBodyFieldsList赋值
                 String frameBodyFieldsListStr = frameFieldsMap.get("frameBodyFieldsList_" + tableNum);
                 String[] frameBodyFieldsArr = frameBodyFieldsListStr.split(",");
                 for (String frameBodyField : frameBodyFieldsArr) {
                     frameBodyFieldsList.add(frameBodyField);
                 }
-                // 匹配到tableNum，为帧字段名字的list赋值
+                // 匹配到tableNum，为帧字段名字的bodyFieldsNameList赋值
                 String bodyFieldsNameListStr = frameFieldsMap.get("bodyFieldsNameList_" + tableNum);
                 String[] bodyFieldsNameArr = bodyFieldsNameListStr.split(",");
                 for (String bodyFieldName : bodyFieldsNameArr) {
@@ -314,19 +317,21 @@ public class ParseUtils {
                 tableNo = Integer.parseInt(headerValuesList.get(i).toString());
             }
         }
+        // 用multiBodyValuesListList存放多个帧体内字段的数据
+        CopyOnWriteArrayList<CopyOnWriteArrayList> multiBodyValuesListList = new CopyOnWriteArrayList();
         for (int i = 0; i < tableNo; i++) {
-            // TODO 根据tableNum找到对应的帧格式，可以做一个配置文件，这里先假设frameBodyFieldsList是找到的帧格式
             CopyOnWriteArrayList<Object> bodyValuesList = new CopyOnWriteArrayList();
             bodyValuesList = (CopyOnWriteArrayList) getValuesAndHexStrList(frameBodyFieldsList, hexFrameStr).get(0);
-            multiBodyValuesListList.add(bodyFieldsNameList);
+            multiBodyValuesListList.add(bodyValuesList);
             hexFrameStr = getValuesAndHexStrList(frameBodyFieldsList, hexFrameStr).get(1).toString();
         }
 
-        // 组装响应帧
+        // TODO 将解析的帧的有用数据通过webSocket发送到前台，数据已经放在了headerValuesList+multiBodyValuesListList中
+
+        // TODO 组装响应帧
         CopyOnWriteArrayList<String> responseFrameFields = new CopyOnWriteArrayList<>();
         CopyOnWriteArrayList<String> responseFrameValues = new CopyOnWriteArrayList<>();
-        int responseCheckSumIndex = 12;
-        String responseHexStr = getResultHexStr(responseFrameFields, responseFrameValues, 12);
+        String responseHexStr = getResultHexStr(responseFrameFields, responseFrameValues, checkSumIndex);
 
         return responseHexStr;
     }
