@@ -42,6 +42,7 @@ public class ReSendThread extends Thread {
      * 移除指定编号的数据包
      */
     public void removeFrame(ResendKeyPojo resendKeyPojo) {
+        //ConcurrentHashMap的remove方法如果没有key，则返回null，不会报异常
         resendHashMap.remove(resendKeyPojo);
     }
 

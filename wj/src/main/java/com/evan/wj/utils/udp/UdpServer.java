@@ -1,6 +1,7 @@
 package com.evan.wj.utils.udp;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * udp服务端
@@ -20,6 +22,9 @@ public class UdpServer {
 
     @Value("${udp.source.port}")
     private int sourcePort;
+
+    @Autowired
+    ParseUtils parseUtils;
 
     public void udpReceive() {
         DatagramSocket serverSocket;
@@ -33,22 +38,35 @@ public class UdpServer {
                 serverSocket.receive(receivePacket);//接受数据库包
                 //将数据包格式换为String类型用于输出
 
-                String recStr = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8);
-                log.info("UdpServer 接收到的数据:{}",recStr);//输出
+                String recHexStr = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8);
+                log.info("UdpServer 接收到的数据:{}",recHexStr);//输出
 
                 // TODO 解析接收到的数据，判断是否需要响应
+                CopyOnWriteArrayList<String> frameHeaderFieldsList = new CopyOnWriteArrayList<>();
+                frameHeaderFieldsList.add("int_4");
+                frameHeaderFieldsList.add("String_8");
+                frameHeaderFieldsList.add("double_8");
+                frameHeaderFieldsList.add("float_4");
+                frameHeaderFieldsList.add("hexString_2_24");//第三个参数是该字段在帧中的位置
 
-                // 向消息的发送者发送响应数据
-                int port = receivePacket.getPort();//获得到客户端的端口//这是通过客户端的数据包中的获取到客户端的端口
-                InetAddress address = receivePacket.getAddress();//得到ip地址
+                // 解析接受的数据，返回需要响应的数据
+                String responseHexStr = parseUtils.parseFrame(frameHeaderFieldsList, recHexStr);
 
-                //TODO 组装响应的信息
-                String sendStr = "UdpServer has received message";//发送的信息
-                byte[] sendBuf;//创建字节数组
-                sendBuf = sendStr.getBytes();//以字节数组形式发出
-                DatagramPacket sendPacket = new DatagramPacket(sendBuf, sendBuf.length, address, port);
-                serverSocket.send(sendPacket);//发送
-                log.info("UdpServer响应:发送至{}:{},数据:{}",address.getHostName(),port,sendStr);
+                // 如果返回的是null，说明不需要响应，直接开始下一轮接收
+                if(responseHexStr == null){
+                    continue;
+                }else {
+                    // 向消息的发送者发送响应数据
+                    int port = receivePacket.getPort();//获得到客户端的端口//这是通过客户端的数据包中的获取到客户端的端口
+                    InetAddress address = receivePacket.getAddress();//得到ip地址
+
+                    //TODO 组装响应的信息
+                    byte[] responseBuf;//创建字节数组
+                    responseBuf = responseHexStr.getBytes();//以字节数组形式发出
+                    DatagramPacket sendPacket = new DatagramPacket(responseBuf, responseBuf.length, address, port);
+                    serverSocket.send(sendPacket);//发送
+                    log.info("UdpServer响应:发送至{}:{},数据:{}",address.getHostName(),port,responseHexStr);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

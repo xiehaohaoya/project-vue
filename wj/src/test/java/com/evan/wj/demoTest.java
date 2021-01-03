@@ -4,12 +4,12 @@ import com.evan.wj.pojo.udp.ResendKeyPojo;
 import com.evan.wj.utils.udp.ParseUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -127,12 +127,12 @@ public class demoTest {
     public void function3() {
         ResendKeyPojo resendKeyPojo = new ResendKeyPojo();
         resendKeyPojo.setIp("1");
-        resendKeyPojo.setPort("1");
+        resendKeyPojo.setPort(1);
         resendKeyPojo.setLastSendTime(1);
 
         ResendKeyPojo resendKeyPojo2 = new ResendKeyPojo();
         resendKeyPojo2.setIp("1");
-        resendKeyPojo2.setPort("1");
+        resendKeyPojo2.setPort(1);
         resendKeyPojo2.setLastSendTime(1);
 
         HashMap<Object, Object> objectObjectHashMap = new HashMap<>();
@@ -140,6 +140,27 @@ public class demoTest {
         objectObjectHashMap.put(resendKeyPojo2,resendKeyPojo2);
 
         System.out.println(objectObjectHashMap.size());
+    }
+
+    @Test
+    public void function4() {
+//        CopyOnWriteArrayList<String> strings = new CopyOnWriteArrayList<>();
+//        strings.add("b");
+//        strings.add("a");
+//        strings.add("c");
+//
+//        Iterator<String> iterator = strings.iterator();
+//        while(iterator.hasNext()){
+//            String next = iterator.next();
+//            System.out.println(next);
+//        }
+//        System.out.println(strings.get(0));
+//        System.out.println(strings.get(1));
+//        System.out.println(strings.get(2));
+
+        ConcurrentHashMap<String, String> stringStringConcurrentHashMap = new ConcurrentHashMap<>();
+        System.out.println(stringStringConcurrentHashMap.remove("aa"));
+        System.out.println(123);
     }
 }
 

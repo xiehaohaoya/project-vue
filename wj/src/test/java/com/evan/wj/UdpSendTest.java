@@ -14,6 +14,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+
 @Slf4j
 @SpringBootTest
 @WebAppConfiguration
@@ -42,78 +44,44 @@ public class UdpSendTest {
 
     @Test
     public void function() {
-        // 对帧pojo赋值
-        frameTableNumPojo.setAge(25);
-        frameTableNumPojo.setName("谢man");
-        frameTableNumPojo.setMoney(666.666);
-        frameBodyPojo.setFrameTableNumPojo(frameTableNumPojo);
-        frameHeaderPojo.setFrameNum(1);
-        framePojo.setFrameHeaderPojo(frameHeaderPojo);
-        framePojo.setFrameBodyPojo(frameBodyPojo);
 
-        // 组装帧字符串
-        StringBuffer frameBuffer = new StringBuffer();
-        frameBuffer.append("0E");
+        // 组装帧字段，先将帧校验根据所需字节数设置为n个0，等待帧组装完毕后填补帧校验
+        CopyOnWriteArrayList<String> frameFields = new CopyOnWriteArrayList<>();
+        frameFields.add("hexString_1");
+        frameFields.add("int_4");
+        frameFields.add("String_8");
+        frameFields.add("double_8");
+        frameFields.add("float_4");
+        frameFields.add("hexString_2");
 
-        /**
-         * 处理发送的十六进制字符串，包括补0操作，大小端转换等。
-         */
-        // 处理int
-        frameBuffer.append(
-                parseUtils.convertBigSmall(
-                        parseUtils.addZero(
-                                Integer.toHexString(
-                                        framePojo.getFrameBodyPojo().getFrameTableNumPojo().getAge()
-                                ), 4
-                        )
-                )
-        );
+        // 组装帧字段值
+        CopyOnWriteArrayList<String> frameFieldsValue = new CopyOnWriteArrayList<>();
+        frameFieldsValue.add("0E");
+        frameFieldsValue.add("1");
+        frameFieldsValue.add("xie");
+        frameFieldsValue.add("12.11");
+        frameFieldsValue.add("13.23");
+        frameFieldsValue.add("0000");//帧校验赋初值
 
-        // 处理string
-        frameBuffer.append(
-                parseUtils.getHexResult(
-                        framePojo.getFrameBodyPojo().getFrameTableNumPojo().getName()
-                )
-        );
+        // 组装帧字符串，并发送
+        String resultHexStr = parseUtils.getResultHexStr(frameFields, frameFieldsValue, 15);
+        udpClient.udpSend(resultHexStr);
 
-        // 处理double
-        frameBuffer.append(
-                parseUtils.convertBigSmall(
-                        parseUtils.addZero(
-                                Long.toHexString(
-                                        Double.doubleToLongBits(
-                                                framePojo.getFrameBodyPojo().getFrameTableNumPojo().getMoney()
-                                        )
-                                ), 4
-                        )
-                )
-        );
-
-        // 处理float
-        frameBuffer.append(
-                parseUtils.convertBigSmall(
-                        parseUtils.addZero(
-                                Integer.toHexString(
-                                        Float.floatToIntBits(
-                                                framePojo.getFrameBodyPojo().getFrameTableNumPojo().getHeight()
-                                        )
-                                ), 4
-                        )
-                )
-        );
-
-        // 组装帧校验
-        frameBuffer.append(parseUtils.makeChecksum(frameBuffer.toString()));
-
-        //TODO 是不是在这里调用重传机制？
-        udpClient.udpSend(frameBuffer.toString());
-
+        // 组装key，方便重发机制重新发送帧
         resendKeyPojo.setIp("");
         resendKeyPojo.setPort(1);
         resendKeyPojo.setFrameSeq("");
         resendKeyPojo.setResendTimes(1);
         resendKeyPojo.setLastSendTime(1);
-        reSendThread.addFrame(resendKeyPojo, frameBuffer.toString());
+        reSendThread.addFrame(resendKeyPojo, resultHexStr);
 
+        // 对帧pojo赋值
+//        frameTableNumPojo.setAge(25);
+//        frameTableNumPojo.setName("谢man");
+//        frameTableNumPojo.setMoney(666.666);
+//        frameBodyPojo.setFrameTableNumPojo(frameTableNumPojo);
+//        frameHeaderPojo.setFrameNum(1);
+//        framePojo.setFrameHeaderPojo(frameHeaderPojo);
+//        framePojo.setFrameBodyPojo(frameBodyPojo);
     }
 }

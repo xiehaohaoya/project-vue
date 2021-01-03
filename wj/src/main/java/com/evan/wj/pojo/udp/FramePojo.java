@@ -12,9 +12,6 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class FramePojo {
 
-    long lastTime;
-    int reSendTimes;
-
     FrameHeaderPojo frameHeaderPojo;
     FrameBodyPojo frameBodyPojo;
 

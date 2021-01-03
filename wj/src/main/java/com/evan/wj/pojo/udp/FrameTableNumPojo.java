@@ -11,8 +11,4 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope("prototype")
 public class FrameTableNumPojo {
-    int age;
-    String name;
-    double money;
-    float height;
 }
