@@ -8,7 +8,6 @@ import java.util.Objects;
 @Data
 @Scope("prototype")
 public class ResendKeyPojo {
-
     // 目标ip
     String ip;
     // 目标端口

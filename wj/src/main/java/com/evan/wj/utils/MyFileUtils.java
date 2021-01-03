@@ -1,9 +1,7 @@
 package com.evan.wj.utils;
 
 import com.alibaba.fastjson.JSONObject;
-import com.evan.wj.pojo.Book;
 import com.evan.wj.pojo.JsonPojo;
-import com.sun.corba.se.spi.orbutil.fsm.Input;
 import org.apache.commons.compress.utils.IOUtils;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -14,7 +12,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;

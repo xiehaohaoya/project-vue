@@ -5,7 +5,7 @@ import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 
 /**
- * 用于测试时，停止监听
+ * 该类用于在用@Test测试时，停止对某些类的监听
  **/
 public class ListenerExcludeFilter extends TypeExcludeFilter {
     private static final String UDP_SERVER_LISTENER = "com.evan.wj.listener.InitBootContextListener";

@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/listener")
 public class ListenerController {
-
     @GetMapping("/user")
     public User getUser(HttpServletRequest request) {
         ServletContext application = request.getServletContext();

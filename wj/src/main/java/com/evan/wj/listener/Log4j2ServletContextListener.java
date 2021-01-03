@@ -6,9 +6,11 @@ import org.springframework.stereotype.Component;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+/**
+ * log4j2的监听类
+ */
 @Component
 public class Log4j2ServletContextListener implements ServletContextListener{
-
     @Value("${log4j2.appender.path}")
     private String log4j2Path;
 

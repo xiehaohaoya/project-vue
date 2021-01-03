@@ -14,7 +14,6 @@ import java.util.Objects;
 @Slf4j
 @Controller
 public class LoginController {
-
     @Autowired
     private UserService userService;
 
@@ -27,9 +26,7 @@ public class LoginController {
         String password = requestUser.getPassword();
         password = HtmlUtils.htmlEscape(password);
         username = HtmlUtils.htmlEscape(username);
-
         User user = userService.selectUserByName(username);
-
         if (user ==null || !Objects.equals(user.getUsername(), username) || !Objects.equals(user.getPassword(), password)) {
             return new Result(400);
         } else {

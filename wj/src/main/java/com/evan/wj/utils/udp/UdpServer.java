@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 @Component
 @Slf4j
 public class UdpServer {
-
     @Value("${udp.source.port}")
     private int sourcePort;
 

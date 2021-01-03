@@ -16,7 +16,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Slf4j
 @Component
 public class ParseUtils {
-
     private static ConcurrentHashMap<String, String> frameFieldsMap = new ConcurrentHashMap();
 
     // 在这里添加帧的解析格式
@@ -227,7 +226,6 @@ public class ParseUtils {
      * @return
      */
     public String parseFrame(String hexFrameStr) {
-
         // frameHeaderFieldsList用来存放帧头的字段格式，如"int_4_2"或"int_4"
         String[] frameHeaderFieldsArr = frameFieldsMap.get("frameHeaderFieldsList").split(",");
         CopyOnWriteArrayList<String> frameHeaderFieldsList = new CopyOnWriteArrayList<>(Arrays.asList(frameHeaderFieldsArr));
@@ -250,7 +248,6 @@ public class ParseUtils {
                     return null;
                 }
             }
-
             // 判断校验和是否正确，不正确则返回null，在上层丢弃
             if ("checkSum".equals(headerFieldsNameList.get(i))) {
                 checkSumIndex = Integer.parseInt(frameHeaderFieldsList.get(i).split("_")[2]);

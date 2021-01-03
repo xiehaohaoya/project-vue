@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope("prototype")
 public class FramePojo {
-
     FrameHeaderPojo frameHeaderPojo;
+
     FrameBodyPojo frameBodyPojo;
 
     public FramePojo() {}

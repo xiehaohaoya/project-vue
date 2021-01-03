@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @Slf4j      //使用该注解，可以直接使用log.info("xxx")打印日志
 public class BookController {
-
     @Autowired      //注入bean
     private BookService bookService;
 
@@ -21,8 +20,8 @@ public class BookController {
     @PostMapping(value = "/api/addOrUpdateBook")        //相当于@RequestMapping(value = "/get/{id}", method = RequestMethod.POST)
     public Result addOrUpdateBook(@RequestBody Book book) {
         bookService.addOrUpdateBook(book);
-        System.out.println("asdfadsfasdf");
-        log.info("dafasdfasdasd");
+        System.out.println("GET BOOK");
+        log.info("GET BOOK");
         return new Result(200);
     }
 }

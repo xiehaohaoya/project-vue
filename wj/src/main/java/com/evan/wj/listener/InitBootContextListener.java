@@ -7,9 +7,11 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
+/**
+ * 在程序启动时就要跑起来的程序在这里调用
+ */
 @Component
 public class InitBootContextListener implements ApplicationListener<ContextRefreshedEvent> {
-
     @Autowired
     HbaseUtils hbaseUtils;
     @Autowired
@@ -17,7 +19,7 @@ public class InitBootContextListener implements ApplicationListener<ContextRefre
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-        //初始化hbase
+        //初始化hbase，使用时解开项目的注解
 //        hbaseUtils.initRepository();
 
         //初始化udpServer的接收器

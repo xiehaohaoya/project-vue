@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 @Component
 @Slf4j
 public class UdpClient {
-
     @Value("${udp.dest.ip}")
     private String destIp;
 

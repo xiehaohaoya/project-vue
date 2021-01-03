@@ -6,7 +6,6 @@ import java.util.Map;
 
 @ConfigurationProperties(prefix = "hbase")
 public class HBaseProperties {
-
     private Map<String, String> config;
 
     public Map<String, String> getConfig() {
