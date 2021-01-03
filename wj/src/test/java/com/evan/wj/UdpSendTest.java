@@ -30,14 +30,6 @@ public class UdpSendTest {
     @Autowired
     ParseUtils parseUtils;
     @Autowired
-    FrameHeaderPojo frameHeaderPojo;
-    @Autowired
-    FrameTableNumPojo frameTableNumPojo;
-    @Autowired
-    FrameBodyPojo frameBodyPojo;
-    @Autowired
-    FramePojo framePojo;
-    @Autowired
     ReSendThread reSendThread;
     @Autowired
     ResendKeyPojo resendKeyPojo;
@@ -67,21 +59,12 @@ public class UdpSendTest {
         String resultHexStr = parseUtils.getResultHexStr(frameFields, frameFieldsValue, 15);
         udpClient.udpSend(resultHexStr);
 
-        // 组装key，方便重发机制重新发送帧
+        // 组装帧的key，将该帧放入重发队列
         resendKeyPojo.setIp("");
         resendKeyPojo.setPort(1);
-        resendKeyPojo.setFrameSeq("");
+        resendKeyPojo.setFrameSeq(1);
         resendKeyPojo.setResendTimes(1);
         resendKeyPojo.setLastSendTime(1);
         reSendThread.addFrame(resendKeyPojo, resultHexStr);
-
-        // 对帧pojo赋值
-//        frameTableNumPojo.setAge(25);
-//        frameTableNumPojo.setName("谢man");
-//        frameTableNumPojo.setMoney(666.666);
-//        frameBodyPojo.setFrameTableNumPojo(frameTableNumPojo);
-//        frameHeaderPojo.setFrameNum(1);
-//        framePojo.setFrameHeaderPojo(frameHeaderPojo);
-//        framePojo.setFrameBodyPojo(frameBodyPojo);
     }
 }

@@ -10,7 +10,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * udp服务端
@@ -41,16 +40,8 @@ public class UdpServer {
                 String recHexStr = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8);
                 log.info("UdpServer 接收到的数据:{}",recHexStr);//输出
 
-                // TODO 解析接收到的数据，判断是否需要响应
-                CopyOnWriteArrayList<String> frameHeaderFieldsList = new CopyOnWriteArrayList<>();
-                frameHeaderFieldsList.add("int_4");
-                frameHeaderFieldsList.add("String_8");
-                frameHeaderFieldsList.add("double_8");
-                frameHeaderFieldsList.add("float_4");
-                frameHeaderFieldsList.add("hexString_2_24");//第三个参数是该字段在帧中的位置
-
                 // 解析接受的数据，返回需要响应的数据
-                String responseHexStr = parseUtils.parseFrame(frameHeaderFieldsList, recHexStr);
+                String responseHexStr = parseUtils.parseFrame(recHexStr);
 
                 // 如果返回的是null，说明不需要响应，直接开始下一轮接收
                 if(responseHexStr == null){
