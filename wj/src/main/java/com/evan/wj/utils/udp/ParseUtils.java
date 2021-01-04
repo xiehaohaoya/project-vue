@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.DatatypeConverter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,83 +29,26 @@ public class ParseUtils {
         frameFieldsMap.put("bodyFieldsNameList_3500", "frameType,checkSum,ip,port,frameSeq,ifResponse,tableNum,tableNo");
     }
 
-    private final String hexString = "0123456789ABCDEF";
-
     @Autowired
     ReSendThread reSendThread;
     @Autowired
     ResendKeyPojo resendKeyPojo;
 
     /**
-     * 将一个汉字转为十六进制
+     * 将bytes字节数组转普通汉英混合的字符串
      *
-     * @param data 一个汉字
-     * @return 十六进制字符串
+     * @param bytes      要解析的字节数组
+     * @param startIndex 设置字节数组需要的开始位置
+     * @param endIndex   设置字节数组需要的结束位置，截取一段字节数组
+     * @return 普通汉英混合的字符串
      */
-    public String encodeCN(String data) {
-        byte[] bytes;
-        bytes = data.getBytes(StandardCharsets.UTF_8);
-        StringBuilder sb = new StringBuilder(bytes.length * 2);
-
-        for (byte aByte : bytes) {
-            sb.append(hexString.charAt((aByte & 0xf0) >> 4));
-            sb.append(hexString.charAt((aByte & 0x0f) >> 0));
+    public static String bytesToString(byte[] bytes, int startIndex, int endIndex) {
+        if (bytes != null && endIndex > 0 && startIndex != endIndex) {
+            byte[] byteModel = new byte[endIndex - startIndex];
+            System.arraycopy(bytes, startIndex, byteModel, 0, endIndex - startIndex);
+            return new String(byteModel, StandardCharsets.UTF_8);
         }
-        return sb.toString();
-    }
-
-    /**
-     * 将一个英语字符转为十六进制
-     *
-     * @param data 一个英文字符的字符串
-     * @return 十六进制字符串
-     */
-    public String encodeStr(String data) {
-        StringBuffer result = new StringBuffer();
-        byte[] bytes;
-        bytes = data.getBytes(StandardCharsets.UTF_8);
-        for (byte aByte : bytes) {
-            result.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
-        }
-        return result.toString();
-    }
-
-    /**
-     * 判定是否为中文汉字
-     *
-     * @param data
-     * @return true为汉字，false为英文
-     */
-    public boolean isCN(String data) {
-        boolean flag = false;
-        String regex = "^[\u4e00-\u9fa5]*$";
-        if (data.matches(regex)) {
-            flag = true;
-        }
-        return flag;
-    }
-
-    /**
-     * 将字符串转为十六进制字符串
-     *
-     * @param targetStr 字符串
-     * @return 十六进制字符串
-     */
-    public String getHexResult(String targetStr) {
-        StringBuilder hexStr = new StringBuilder();
-        int len = targetStr.length();
-        if (len > 0) {
-            for (int i = 0; i < len; i++) {
-                char tempStr = targetStr.charAt(i);
-                String data = String.valueOf(tempStr);
-                if (isCN(data)) {
-                    hexStr.append(encodeCN(data));
-                } else {
-                    hexStr.append(encodeStr(data));
-                }
-            }
-        }
-        return hexStr.toString();
+        return "";
     }
 
     /**
@@ -187,11 +131,18 @@ public class ParseUtils {
                                 addZero(
                                         Integer.toHexString(Integer.parseInt(frameFieldsValue.get(i))),
                                         Integer.parseInt(fields[1]))));
-            } else if ("String".equals(fields[0])) {
+            } else if ("long".equals(fields[0])) {
+                // 处理long
+                frameBuffer.append(
+                        convertBigSmall(
+                                addZero(
+                                        Long.toHexString(Long.parseLong(frameFieldsValue.get(i))),
+                                        Integer.parseInt(fields[1]))));
+            }else if ("String".equals(fields[0])) {
                 // 处理string
                 frameBuffer.append(
                         addZero(
-                                getHexResult(frameFieldsValue.get(i)),
+                                DatatypeConverter.printHexBinary(frameFieldsValue.get(i).getBytes(StandardCharsets.UTF_8)),
                                 Integer.parseInt(fields[1])));
             } else if ("double".equals(fields[0])) {
                 // 处理double
@@ -210,13 +161,65 @@ public class ParseUtils {
             } else if ("hexString".equals(fields[0])) {
                 // 处理hexString
                 frameBuffer.append(frameFieldsValue.get(i));
+            } else if ("byte".equals(fields[0])) {
+                // 处理byte
+                byte[] bytes = {0};
+                bytes[0] = Byte.parseByte(frameFieldsValue.get(i));
+                frameBuffer.append(DatatypeConverter.printHexBinary(bytes));
             }
         }
-        // 组装帧校验
+        // TODO 组装帧校验，这里先默认帧校验为四位
         frameBuffer.insert(checkSumIndex, "0000");
         frameBuffer.replace(checkSumIndex, checkSumIndex + 8, makeChecksum(frameBuffer.toString()));
 
         return frameBuffer.toString();
+    }
+
+    /**
+     * 解析16进制帧字符串，将帧字段对应的值按照协议顺序存放进返回的headerValuesList中
+     *
+     * @param fieldsList  存放帧的格式，如"int_4_12"或"int_4"，第一个参数是帧字段的类型，第二个参数是帧字段所占的字节数，第三个参数是帧字段在帧内的位置
+     * @param hexFrameStr 16进制的帧字符串
+     * @return 按照顺序存放的帧字段的list，以及经过切分的16进制字符串
+     */
+    public CopyOnWriteArrayList<Object> getValuesAndHexStrList(CopyOnWriteArrayList<String> fieldsList, String hexFrameStr) {
+        CopyOnWriteArrayList<Object> valuesList = new CopyOnWriteArrayList<>();
+        CopyOnWriteArrayList<Object> resultList = new CopyOnWriteArrayList<>();
+        // 解析帧头，将帧头信息按照字段顺序存入list中
+        for (int i = 0; i < fieldsList.size(); i++) {
+            String type = fieldsList.get(i).split("_")[0];
+            int bytesNum = Integer.parseInt(fieldsList.get(i).split("_")[1]);
+            if ("int".equals(type)) {
+                valuesList.add(Integer.parseInt(convertBigSmall(hexFrameStr.substring(0, 2 * bytesNum)), 16));
+                // 解析出帧字段后，就将这部分的帧字符串切除掉
+                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
+            } else if ("long".equals(type)) {
+                valuesList.add(Long.parseLong(convertBigSmall(hexFrameStr.substring(0, 2 * bytesNum)), 16));
+                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
+            } else if ("String".equals(type)) {
+                // 将16进制字符串转为字节数组
+                byte[] bytes = DatatypeConverter.parseHexBinary(hexFrameStr.substring(0, 2 * bytesNum));
+                // 将bytes字节数组转普通汉英混合的字符串
+                valuesList.add(bytesToString(bytes, 0, bytes.length));
+                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
+            } else if ("double".equals(type)) {
+                valuesList.add(Double.longBitsToDouble(Long.parseLong(convertBigSmall(hexFrameStr.substring(0, 2 * bytesNum)), 16)));
+                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
+            } else if ("float".equals(type)) {
+                valuesList.add(Float.intBitsToFloat(Integer.parseInt(convertBigSmall(hexFrameStr.substring(0, 2 * bytesNum)), 16)));
+                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
+            } else if ("hexString".equals(type)) {
+                valuesList.add(hexFrameStr.substring(0, 2 * bytesNum));
+                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
+            } else if ("byte".equals(type)) {
+                byte[] bytes = DatatypeConverter.parseHexBinary(hexFrameStr.substring(0, 2 * bytesNum));
+                valuesList.add(bytes[0]);
+                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
+            }
+        }
+        resultList.add(valuesList);
+        resultList.add(hexFrameStr);
+        return resultList;
     }
 
     /**
@@ -324,6 +327,8 @@ public class ParseUtils {
         }
 
         // TODO 将解析的帧的有用数据通过webSocket发送到前台，数据已经放在了headerValuesList+multiBodyValuesListList中
+        log.info("帧头信息:{}", headerValuesList.toString());
+        log.info("帧体信息:{}", multiBodyValuesListList.toString());
 
         // TODO 组装响应帧
         CopyOnWriteArrayList<String> responseFrameFields = new CopyOnWriteArrayList<>();
@@ -331,41 +336,5 @@ public class ParseUtils {
         String responseHexStr = getResultHexStr(responseFrameFields, responseFrameValues, checkSumIndex);
 
         return responseHexStr;
-    }
-
-    /**
-     * 解析16进制帧字符串，将帧字段对应的值按照协议顺序存放进返回的headerValuesList中
-     *
-     * @param fieldsList  存放帧的格式，如"int_4_12"或"int_4"，第一个参数是帧字段的类型，第二个参数是帧字段所占的字节数，第三个参数是帧字段在帧内的位置
-     * @param hexFrameStr 16进制的帧字符串
-     * @return 按照顺序存放的帧字段的list，以及经过切分的16进制字符串
-     */
-    public CopyOnWriteArrayList<Object> getValuesAndHexStrList(CopyOnWriteArrayList<String> fieldsList, String hexFrameStr) {
-        CopyOnWriteArrayList<Object> valuesList = new CopyOnWriteArrayList<>();
-        CopyOnWriteArrayList<Object> resultList = new CopyOnWriteArrayList<>();
-        // 解析帧头，将帧头信息按照字段顺序存入list中
-        for (int i = 0; i < fieldsList.size(); i++) {
-            String type = fieldsList.get(i).split("_")[0];
-            int bytesNum = Integer.parseInt(fieldsList.get(i).split("_")[1]);
-            if ("int".equals(type)) {
-                valuesList.add(Integer.parseInt(convertBigSmall(hexFrameStr.substring(0, 2 * bytesNum)), 16));
-                // 解析出帧字段后，就将这部分的帧字符串切除掉
-                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
-            } else if ("String".equals(type)) {
-                // TODO 这里有问题
-            } else if ("double".equals(type)) {
-                valuesList.add(Double.longBitsToDouble(Long.parseLong(convertBigSmall(hexFrameStr.substring(0, 2 * bytesNum)), 16)));
-                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
-            } else if ("float".equals(type)) {
-                valuesList.add(Float.intBitsToFloat(Integer.parseInt(convertBigSmall(hexFrameStr.substring(0, 2 * bytesNum)), 16)));
-                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
-            } else if ("hexString".equals(type)) {
-                valuesList.add(hexFrameStr.substring(0, 2 * bytesNum));
-                hexFrameStr = hexFrameStr.substring(2 * bytesNum);
-            }
-        }
-        resultList.add(valuesList);
-        resultList.add(hexFrameStr);
-        return resultList;
     }
 }

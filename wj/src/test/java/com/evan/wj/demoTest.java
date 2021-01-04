@@ -5,6 +5,8 @@ import com.evan.wj.utils.udp.ParseUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
+import javax.xml.bind.DatatypeConverter;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -54,113 +56,30 @@ public class demoTest {
         AeroThread aeroThread1 = new AeroThread();
         AeroThread aeroThread2 = new AeroThread();
         AeroThread aeroThread3 = new AeroThread();
-        AeroThread aeroThread4 = new AeroThread();
-        AeroThread aeroThread5 = new AeroThread();
-        AeroThread aeroThread6 = new AeroThread();
 
         executorService.execute(aeroThread1);
         executorService.execute(aeroThread2);
         executorService.execute(aeroThread3);
-        executorService.execute(aeroThread4);
-        executorService.execute(aeroThread5);
-        executorService.execute(aeroThread6);
     }
 
     @Test
-    public void function() {
-//        System.out.println(Integer.toHexString(171711));
-//        System.out.println(Long.toHexString(Double.doubleToLongBits(177777.177777)));
+    public void function1() {
 
-        ParseUtils parseUtils = new ParseUtils();
-//        System.out.println(parseUtils.getHexResult("繁"));
-//        System.out.println(Integer.toHexString(1));
-//        System.out.println(parseUtils.addZero("abc", 4));
-//        System.out.println(parseUtils.convertBigSmall(""));
-//        String sendStr = "Udp ";//发送的信息
-//        byte[] sendBuf;//创建字节数组
-//        sendBuf = sendStr.getBytes();//以字节数组形式发出
-//        System.out.println(sendBuf.length);
-
-        //十六进制转十进制
-//        System.out.println(Integer.parseInt("a", 16));
-        System.out.println(Integer.parseInt("a", 16));
-
-        String str = "c0a8016a0b6f6f6f";
-        for (int i = 1; i <= str.length()/4; i++) {
-//            "0x"+str.substring(4 * i - 4, 4 * i);
-//            Integer.parseInt()
-        }
-        int a = 0x11;
     }
 
     @Test
     public void function2() {
-        int[] arr = {0xc0a8,0x016a,0x0b6f,0x6f6f};
-        int sum = 0;
-        for(int num:arr) {
-            sum += num;
-            if(sum>>>16>0) {
-                sum = (sum >>> 16) + (sum & 0xffff);
-            }
-        }
-        System.out.println(Integer.toBinaryString(sum));
-        //取低16位
-        System.out.println(Integer.toHexString(~sum).substring(4));
-    }
 
-    @Test
-    public void makeChecksum() {
-        String str = "c0a8016a0b6f6f6f";
-        int sum = 0;
-        for (int i = 1; i <= str.length()/4; i++) {
-            int num = Integer.parseInt(str.substring(4 * i - 4, 4 * i), 16);
-            sum += num;
-            if(sum>>>16>0) {
-                sum = (sum >>> 16) + (sum & 0xffff);
-            }
-        }
-        //取低16位
-        Integer.toHexString(~sum).substring(4);
     }
 
     @Test
     public void function3() {
-        ResendKeyPojo resendKeyPojo = new ResendKeyPojo();
-        resendKeyPojo.setIp("1");
-        resendKeyPojo.setPort(1);
-        resendKeyPojo.setLastSendTime(1);
 
-        ResendKeyPojo resendKeyPojo2 = new ResendKeyPojo();
-        resendKeyPojo2.setIp("1");
-        resendKeyPojo2.setPort(1);
-        resendKeyPojo2.setLastSendTime(1);
-
-        HashMap<Object, Object> objectObjectHashMap = new HashMap<>();
-        objectObjectHashMap.put(resendKeyPojo,resendKeyPojo);
-        objectObjectHashMap.put(resendKeyPojo2,resendKeyPojo2);
-
-        System.out.println(objectObjectHashMap.size());
     }
 
     @Test
     public void function4() {
-//        CopyOnWriteArrayList<String> strings = new CopyOnWriteArrayList<>();
-//        strings.add("b");
-//        strings.add("a");
-//        strings.add("c");
-//
-//        Iterator<String> iterator = strings.iterator();
-//        while(iterator.hasNext()){
-//            String next = iterator.next();
-//            System.out.println(next);
-//        }
-//        System.out.println(strings.get(0));
-//        System.out.println(strings.get(1));
-//        System.out.println(strings.get(2));
 
-        ConcurrentHashMap<String, String> stringStringConcurrentHashMap = new ConcurrentHashMap<>();
-        System.out.println(stringStringConcurrentHashMap.remove("aa"));
-        System.out.println(123);
     }
 }
 

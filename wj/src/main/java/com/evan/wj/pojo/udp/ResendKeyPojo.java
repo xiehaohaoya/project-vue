@@ -2,11 +2,13 @@ package com.evan.wj.pojo.udp;
 
 import lombok.Data;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
 @Data
 @Scope("prototype")
+@Component
 public class ResendKeyPojo {
     // 目标ip
     String ip;
