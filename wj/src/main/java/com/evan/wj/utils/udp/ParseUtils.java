@@ -20,13 +20,13 @@ public class ParseUtils {
     private static ConcurrentHashMap<String, String> frameFieldsMap = new ConcurrentHashMap();
 
     // 在这里添加帧的解析格式
-    public void ParseUtils() {
-        frameFieldsMap.put("frameHeaderFieldsList", "int_4,String_8,double_8,float_4,hexString_2_24,float_4,float_4,float_4");
-        frameFieldsMap.put("headerFieldsNameList", "frameType,checkSum,ip,port,frameSeq,ifResponse,tableNum,tableNo");
-        frameFieldsMap.put("frameBodyFieldsList_6712", "int_4,String_8,double_8,float_4,hexString_2_24,float_4,float_4,float_4");
-        frameFieldsMap.put("bodyFieldsNameList_6712", "frameType,checkSum,ip,port,frameSeq,ifResponse,tableNum,tableNo");
-        frameFieldsMap.put("frameBodyFieldsList_3500", "int_4,String_8,double_8,float_4,hexString_2_24,float_4,float_4,float_4");
-        frameFieldsMap.put("bodyFieldsNameList_3500", "frameType,checkSum,ip,port,frameSeq,ifResponse,tableNum,tableNo");
+    public ParseUtils() {
+        frameFieldsMap.put("frameHeaderFieldsList", "hexString_1,String_16,int_4,int_4,String_16,int_4,int_4,long_8,int_4,long_8,byte_1,byte_1,hexString_2");
+        frameFieldsMap.put("headerFieldsNameList", "frameType,sourceIp,sourcePort,sourceHostId,destIp,destPort,destHostId,frameSeq,tableNo,tableNum,resendTimes,ifResponse,checkSum");
+        frameFieldsMap.put("frameBodyFieldsList_6712", "byte_1,int_4,long_8,float_4,double_8,String_20,hexString_4");
+        frameFieldsMap.put("bodyFieldsNameList_6712", "parseByte,parseInt,parseLong,parseFloat,parseDouble,parseString,parseHexString");
+        frameFieldsMap.put("frameBodyFieldsList_3500", "byte_1,int_4,long_8,float_4,double_8,String_20,hexString_4");
+        frameFieldsMap.put("bodyFieldsNameList_3500", "parseByte,parseInt,parseLong,parseFloat,parseDouble,parseString,parseHexString");
     }
 
     @Autowired
@@ -92,7 +92,7 @@ public class ParseUtils {
     }
 
     /**
-     * 计算校验和
+     * 计算校验和，返回四个字符的16进制字符串
      *
      * @return
      */
@@ -120,7 +120,6 @@ public class ParseUtils {
     public String getResultHexStr(CopyOnWriteArrayList<String> frameFields, CopyOnWriteArrayList<String> frameFieldsValue, int checkSumIndex) {
         // 将帧组装为16进制字符串
         StringBuffer frameBuffer = new StringBuffer();
-//        frameBuffer.append("0E");
         // 因为这里不需要修改list的值，所以可以不用iterator，用for遍历
         for (int i = 0; i < frameFields.size(); i++) {
             String[] fields = frameFields.get(i).split("_");
@@ -160,7 +159,7 @@ public class ParseUtils {
                                         Integer.parseInt(fields[1]))));
             } else if ("hexString".equals(fields[0])) {
                 // 处理hexString
-                frameBuffer.append(frameFieldsValue.get(i));
+                frameBuffer.append(addZero(frameFieldsValue.get(i), Integer.parseInt(fields[1])));
             } else if ("byte".equals(fields[0])) {
                 // 处理byte
                 byte[] bytes = {0};
@@ -168,9 +167,8 @@ public class ParseUtils {
                 frameBuffer.append(DatatypeConverter.printHexBinary(bytes));
             }
         }
-        // TODO 组装帧校验，这里先默认帧校验为四位
-        frameBuffer.insert(checkSumIndex, "0000");
-        frameBuffer.replace(checkSumIndex, checkSumIndex + 8, makeChecksum(frameBuffer.toString()));
+        // TODO 这里默认checkSum是2个字节，也就是4个字符的16进制字符串
+        frameBuffer.replace(checkSumIndex * 2, checkSumIndex * 2 + 4, makeChecksum(frameBuffer.toString()));
 
         return frameBuffer.toString();
     }
@@ -228,7 +226,7 @@ public class ParseUtils {
      * @param hexFrameStr
      * @return
      */
-    public String parseFrame(String hexFrameStr) {
+    public String parseFrame(String hexFrameStr, int checkSumIndex) {
         // frameHeaderFieldsList用来存放帧头的字段格式，如"int_4_2"或"int_4"
         String[] frameHeaderFieldsArr = frameFieldsMap.get("frameHeaderFieldsList").split(",");
         CopyOnWriteArrayList<String> frameHeaderFieldsList = new CopyOnWriteArrayList<>(Arrays.asList(frameHeaderFieldsArr));
@@ -240,39 +238,30 @@ public class ParseUtils {
         // headerValuesList用来存放帧头字段的值
         CopyOnWriteArrayList headerValuesList = new CopyOnWriteArrayList();
 
-        // 校验帧的在帧内的字节位置
-        int checkSumIndex = 0;
-
-        // 筛选帧
-        for (int i = 0; i < headerFieldsNameList.size(); i++) {
-            // 判断帧类型是否正确，不正确则返回null，在上层丢弃
-            if ("frameType".equals(headerFieldsNameList.get(i))) {
-                if (!"BE".equals(headerValuesList.get(i).toString())) {
-                    return null;
-                }
-            }
-            // 判断校验和是否正确，不正确则返回null，在上层丢弃
-            if ("checkSum".equals(headerFieldsNameList.get(i))) {
-                checkSumIndex = Integer.parseInt(frameHeaderFieldsList.get(i).split("_")[2]);
-                String checkSum = makeChecksum(hexFrameStr.substring(0, checkSumIndex * 2) + "0000" + hexFrameStr.substring(checkSumIndex + 4));
-                if (!checkSum.equals(hexFrameStr.substring(checkSumIndex * 2, checkSumIndex * 2 + 4))) {
-                    return null;
-                }
-            }
+        // 判断帧类型是否正确，不正确则返回null，在上层丢弃
+        // TODO 这里按需修改帧类型
+        if (!"BE".equals(hexFrameStr.substring(0,2))) {
+            return null;
+        }
+        // 判断校验和是否正确，不正确则返回null，在上层丢弃
+        // TODO 这里按需修改checkSum字节长度"0000"
+        String checkSum = makeChecksum(hexFrameStr.substring(0, checkSumIndex * 2) + "0000" + hexFrameStr.substring(checkSumIndex * 2 + 4));
+        if (!checkSum.equals(hexFrameStr.substring(checkSumIndex * 2, checkSumIndex * 2 + 4))) {
+            return null;
         }
 
         // 解析帧头，将帧头字段的值按照顺序存入headerValuesList中
         CopyOnWriteArrayList<Object> valuesAndHexStrList;
-        valuesAndHexStrList = getValuesAndHexStrList(headerFieldsNameList, hexFrameStr);
+        valuesAndHexStrList = getValuesAndHexStrList(frameHeaderFieldsList, hexFrameStr);
         headerValuesList = (CopyOnWriteArrayList) valuesAndHexStrList.get(0);
         // 返回hexFrameStr为切去帧头的16进制字符串
         hexFrameStr = valuesAndHexStrList.get(1).toString();
 
         // 组装resendKeyPojo对象，并判断是否需要响应
         for (int i = 0; i < headerFieldsNameList.size(); i++) {
-            if ("ip".equals(headerFieldsNameList.get(i))) {
+            if ("sourceIp".equals(headerFieldsNameList.get(i))) {
                 resendKeyPojo.setIp(headerValuesList.get(i).toString());
-            } else if ("port".equals(headerFieldsNameList.get(i))) {
+            } else if ("sourcePort".equals(headerFieldsNameList.get(i))) {
                 resendKeyPojo.setPort(Integer.parseInt(headerValuesList.get(i).toString()));
             } else if ("frameSeq".equals(headerFieldsNameList.get(i))) {
                 resendKeyPojo.setFrameSeq(Long.parseLong(headerValuesList.get(i).toString()));
@@ -287,24 +276,24 @@ public class ParseUtils {
         }
 
         // 如果不是响应帧，需要解析出帧信息，判断有几个帧体，并返回响应
-        String tableNum;
-        int tableNo = 0;
+        long tableNum = 0;
+        int tableNo;
         // 存放帧字段结构的list，如"int_4_12"或"int_4"
         CopyOnWriteArrayList<String> frameBodyFieldsList = new CopyOnWriteArrayList<>();
         // 存放帧字段名字的list
         CopyOnWriteArrayList<String> bodyFieldsNameList = new CopyOnWriteArrayList();
         for (int i = 0; i < headerFieldsNameList.size(); i++) {
             // 得到帧体的表号
-            if ("tableNum".equals(headerFieldsNameList.get(i))) {
-                tableNum = headerValuesList.get(i).toString();
+            if ("tableNo".equals(headerFieldsNameList.get(i))) {
+                tableNo = Integer.parseInt(headerValuesList.get(i).toString());
                 // 匹配到tableNum，为帧字段结构frameBodyFieldsList赋值
-                String frameBodyFieldsListStr = frameFieldsMap.get("frameBodyFieldsList_" + tableNum);
+                String frameBodyFieldsListStr = frameFieldsMap.get("frameBodyFieldsList_" + tableNo);
                 String[] frameBodyFieldsArr = frameBodyFieldsListStr.split(",");
                 for (String frameBodyField : frameBodyFieldsArr) {
                     frameBodyFieldsList.add(frameBodyField);
                 }
                 // 匹配到tableNum，为帧字段名字的bodyFieldsNameList赋值
-                String bodyFieldsNameListStr = frameFieldsMap.get("bodyFieldsNameList_" + tableNum);
+                String bodyFieldsNameListStr = frameFieldsMap.get("bodyFieldsNameList_" + tableNo);
                 String[] bodyFieldsNameArr = bodyFieldsNameListStr.split(",");
                 for (String bodyFieldName : bodyFieldsNameArr) {
                     bodyFieldsNameList.add(bodyFieldName);
@@ -313,17 +302,17 @@ public class ParseUtils {
         }
         for (int i = 0; i < headerFieldsNameList.size(); i++) {
             // 得到帧体的数量
-            if ("tableNo".equals(headerFieldsNameList.get(i))) {
-                tableNo = Integer.parseInt(headerValuesList.get(i).toString());
+            if ("tableNum".equals(headerFieldsNameList.get(i))) {
+                tableNum = Integer.parseInt(headerValuesList.get(i).toString());
             }
         }
         // 用multiBodyValuesListList存放多个帧体内字段的数据
         CopyOnWriteArrayList<CopyOnWriteArrayList> multiBodyValuesListList = new CopyOnWriteArrayList();
-        for (int i = 0; i < tableNo; i++) {
-            CopyOnWriteArrayList<Object> bodyValuesList = new CopyOnWriteArrayList();
-            bodyValuesList = (CopyOnWriteArrayList) getValuesAndHexStrList(frameBodyFieldsList, hexFrameStr).get(0);
+        for (int i = 0; i < tableNum; i++) {
+            CopyOnWriteArrayList bodyValuesAndHexStrList = getValuesAndHexStrList(frameBodyFieldsList, hexFrameStr);
+            CopyOnWriteArrayList bodyValuesList = (CopyOnWriteArrayList) bodyValuesAndHexStrList.get(0);
             multiBodyValuesListList.add(bodyValuesList);
-            hexFrameStr = getValuesAndHexStrList(frameBodyFieldsList, hexFrameStr).get(1).toString();
+            hexFrameStr = bodyValuesAndHexStrList.get(1).toString();
         }
 
         // TODO 将解析的帧的有用数据通过webSocket发送到前台，数据已经放在了headerValuesList+multiBodyValuesListList中
@@ -333,7 +322,8 @@ public class ParseUtils {
         // TODO 组装响应帧
         CopyOnWriteArrayList<String> responseFrameFields = new CopyOnWriteArrayList<>();
         CopyOnWriteArrayList<String> responseFrameValues = new CopyOnWriteArrayList<>();
-        String responseHexStr = getResultHexStr(responseFrameFields, responseFrameValues, checkSumIndex);
+//        String responseHexStr = getResultHexStr(responseFrameFields, responseFrameValues, checkSumIndex);
+        String responseHexStr = "hello xie ya xie hao hao";
 
         return responseHexStr;
     }

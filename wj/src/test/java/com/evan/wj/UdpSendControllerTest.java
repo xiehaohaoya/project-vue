@@ -2,7 +2,6 @@ package com.evan.wj;
 
 import com.evan.wj.listener.ListenerExcludeFilter;
 import com.evan.wj.pojo.udp.*;
-import com.evan.wj.utils.SingletonThreadPool;
 import com.evan.wj.utils.udp.ParseUtils;
 import com.evan.wj.utils.udp.ReSendThread;
 import com.evan.wj.utils.udp.UdpClient;
@@ -16,7 +15,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
 
 /**
  * 假设有这样一个协议：
@@ -130,7 +128,7 @@ public class UdpSendControllerTest {
         frameFieldsValue.add("6712");
         frameFieldsValue.add("2");
         frameFieldsValue.add("1");
-        frameFieldsValue.add("1");
+        frameFieldsValue.add("2");
         frameFieldsValue.add("0000");//帧校验赋初值
         // 组装帧体1
         frameFieldsValue.add("1");
@@ -150,7 +148,7 @@ public class UdpSendControllerTest {
         frameFieldsValue.add("92AC");
 
         // 组装帧字符串，并发送
-        String resultHexStr = parseUtils.getResultHexStr(frameFields, frameFieldsValue, 15);
+        String resultHexStr = parseUtils.getResultHexStr(frameFields, frameFieldsValue, 71);
         udpClient.udpSend(resultHexStr);
 
         // 组装帧的key，将该帧放入重发队列
@@ -159,6 +157,7 @@ public class UdpSendControllerTest {
         resendKeyPojo.setFrameSeq(1);
         resendKeyPojo.setResendTimes(1);
         resendKeyPojo.setLastSendTime(System.currentTimeMillis());
+        // TODO 传一个帧计数的变量类型与位置，帧校验的变量类型与位置
         reSendThread.addFrame(resendKeyPojo, resultHexStr);
     }
 }

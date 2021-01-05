@@ -33,14 +33,17 @@ public class UdpServer {
             DatagramPacket receivePacket = new DatagramPacket(recBuf, recBuf.length);
             //使用while语句循环接收数据
             while (true){
+                log.info("============udpServer准备接收数据============");
                 serverSocket.receive(receivePacket);//接受数据库包
                 //将数据包格式换为String类型用于输出
 
                 String recHexStr = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8);
-                log.info("UdpServer 接收到的数据:{}",recHexStr);//输出
+                log.info("============UdpServer 接收到的数据:{}",recHexStr);//输出
 
                 // 解析接受的数据，返回需要响应的数据
-                String responseHexStr = parseUtils.parseFrame(recHexStr);
+                // TODO 这里按需修改checkSumIndex
+                int checkSumIndex = 71;
+                String responseHexStr = parseUtils.parseFrame(recHexStr, checkSumIndex);
 
                 // 如果返回的是null，说明不需要响应，直接开始下一轮接收
                 if(responseHexStr == null){
@@ -54,7 +57,7 @@ public class UdpServer {
                     responseBuf = responseHexStr.getBytes();//以字节数组形式发出
                     DatagramPacket sendPacket = new DatagramPacket(responseBuf, responseBuf.length, address, port);
                     serverSocket.send(sendPacket);//发送
-                    log.info("UdpServer响应:发送至{}:{},数据:{}",address.getHostName(),port,responseHexStr);
+                    log.info("============UdpServer响应:发送至{}:{},数据:{}",address.getHostName(),port,responseHexStr);
                 }
             }
         } catch (Exception e) {

@@ -33,7 +33,7 @@ public class UdpClient {
      * @param sendStr 要发送的十六进制字符串
      */
     public void udpSend(String sendStr) {
-        log.info("clientSocket向{}:{}发送:String-{}", destIp, destPort, sendStr);
+        log.info("============clientSocket向{}:{}发送:String-{}", destIp, destPort, sendStr);
         DatagramSocket clientSocket;
         String recStr = null;
         try {
@@ -44,7 +44,7 @@ public class UdpClient {
             InetAddress address = InetAddress.getByName(destIp);
             DatagramPacket sendPacket = new DatagramPacket(sendBuf, sendBuf.length, address, destPort);
             clientSocket.send(sendPacket);//发送
-            log.info("clientSocket向{}:{}发送:Bytes-{}", destIp, destPort, sendBuf);
+            log.info("============clientSocket向{}:{}发送:Bytes-{}", destIp, destPort, sendBuf);
 
             /*
             //解开这里可以直接接收响应的数据，这里涨知识，不需要使用
@@ -68,7 +68,7 @@ public class UdpClient {
      * @param sendStr 要发送的十六进制字符串
      */
     public void udpSend(String sendStr, String destIp, int destPort) {
-        log.info("clientSocket向{}:{}发送:String-{}", destIp, destPort, sendStr);
+        log.info("============clientSocket向{}:{}发送:String-{}", destIp, destPort, sendStr);
         DatagramSocket clientSocket;
         String recStr = null;
         try {
@@ -79,7 +79,7 @@ public class UdpClient {
             InetAddress address = InetAddress.getByName(destIp);
             DatagramPacket sendPacket = new DatagramPacket(sendBuf, sendBuf.length, address, destPort);
             clientSocket.send(sendPacket);//发送
-            log.info("clientSocket向{}:{}发送:Bytes-{}", destIp, destPort, sendBuf);
+            log.info("============clientSocket向{}:{}发送:Bytes-{}", destIp, destPort, sendBuf);
 
             clientSocket.close();//关闭
         } catch (Exception e) {

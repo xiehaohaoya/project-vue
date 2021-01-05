@@ -50,8 +50,10 @@ public class ReSendThread extends Thread {
      * 执行线程时的方法
      */
     public void run() {
+        log.info("============ReSendThread的run方法线程开始执行============");
         try {
             while (true) {
+                Thread.sleep(50);
                 if (!resendHashMap.isEmpty()) {
                     Iterator iterator = resendHashMap.entrySet().iterator();
                     while (iterator.hasNext()){
@@ -61,6 +63,7 @@ public class ReSendThread extends Thread {
 
                         long time = System.currentTimeMillis() - resendKeyPojo.getLastSendTime();//距离上次发送的时间
                         if (resendKeyPojo.getResendTimes() == 1 && time > 300) {   //超出300ms则重发
+                            log.info("*******************进入重发方法11111");
                             String resendTimes = parseUtils.convertBigSmall(
                                     parseUtils.addZero(
                                             Integer.toHexString(
@@ -79,7 +82,8 @@ public class ReSendThread extends Thread {
                             int reSendTimes = resendKeyPojo.getResendTimes();
                             resendKeyPojo.setResendTimes(++reSendTimes);
                             resendKeyPojo.setLastSendTime(System.currentTimeMillis());
-                        }else if (resendKeyPojo.getResendTimes() == 2 && time > 200) {   //超出300ms则重发
+                        }else if (resendKeyPojo.getResendTimes() == 2 && time > 200) {   //超出200ms则重发
+                            log.info("*******************进入重发方法22222");
                             String resendTimes = parseUtils.convertBigSmall(
                                     parseUtils.addZero(
                                             Integer.toHexString(
@@ -98,7 +102,8 @@ public class ReSendThread extends Thread {
                             int reSendTimes = resendKeyPojo.getResendTimes();
                             resendKeyPojo.setResendTimes(++reSendTimes);
                             resendKeyPojo.setLastSendTime(System.currentTimeMillis());
-                        }else if (resendKeyPojo.getResendTimes() == 3 && time > 100) {   //超出300ms则重发
+                        }else if (resendKeyPojo.getResendTimes() == 3 && time > 100) {   //超出100ms则重发
+                            log.info("*******************进入重发方法33333");
                             String resendTimes = parseUtils.convertBigSmall(
                                     parseUtils.addZero(
                                             Integer.toHexString(
@@ -123,6 +128,7 @@ public class ReSendThread extends Thread {
                         }
                     }
                 }
+                Thread.sleep(50);
             }
         } catch (Exception e) {
             log.error("MainActivity", "重传线程异常");
